@@ -1,5 +1,5 @@
 * { color: #E6EEF5; font-family: "Segoe UI", "Yu Gothic UI", sans-serif; font-size: 13px; }
-QMainWindow { background: #11161C; }
+QWidget { background: #11161C; }
 QFrame#sidebar { background: #171E26; border-right: 1px solid #27313B; }
 QLabel#appTitle { color: #53E6FF; font-size: 22px; font-weight: 700; }
 QLabel#pageTitle { font-size: 27px; font-weight: 700; }

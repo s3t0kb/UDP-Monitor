@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QMainWindow
+from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QPushButton, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget
 
 from udpmonitor.database import SessionRepository
 from udpmonitor.translations.translator import Translator
 
 
-class SessionsPage(QMainWindow):
+class SessionsPage(QWidget):
     """Show saved monitor sessions and export a selected session to CSV."""
 
     def __init__(self, repository: SessionRepository, translator: Translator) -> None:

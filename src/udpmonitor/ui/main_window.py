@@ -6,7 +6,7 @@ from collections.abc import Callable
 from functools import partial
 
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QVBoxLayout, QMainWindow
+from PySide6.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QVBoxLayout, QWidget
 
 from udpmonitor.config import AppSettings
 from udpmonitor.database import SessionRepository
@@ -41,7 +41,7 @@ class MetricCard(QFrame):
         self._detail.setText(self._translator.text("waiting"))
 
 
-class InformationPage(QMainWindow):
+class InformationPage(QWidget):
     """Dashboard and temporary feature pages."""
 
     def __init__(self, key: str, translator: Translator, dashboard: bool = False, on_action: Callable[[], None] | None = None) -> None:
@@ -95,7 +95,7 @@ class InformationPage(QMainWindow):
             self._future_body.setText(self._translator.text("future_body"))
 
 
-class SettingsPage(QMainWindow):
+class SettingsPage(QWidget):
     """Presentation settings owned by the settings service."""
 
     def __init__(self, settings: AppSettings, translator: Translator, save: Callable[[], None], repository: SessionRepository) -> None:
@@ -131,7 +131,7 @@ class SettingsPage(QMainWindow):
         self._settings.restore_last_page = checked; self._save()
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QWidget):
     """Main shell with persistent page navigation."""
 
     _pages = ("dashboard", "monitor", "sessions", "settings")
