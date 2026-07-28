@@ -1,3 +1,19 @@
+Metadata-Version: 2.4
+Name: udp-monitor
+Version: 0.1.0
+Summary: A real-time UDP network diagnostics tool for Windows.
+License: MIT
+Requires-Python: <3.15,>=3.14
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: orjson>=3.10.0
+Requires-Dist: PySide6>=6.8.0
+Requires-Dist: pyqtgraph>=0.13.7
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: pytest-qt>=4.4; extra == "dev"
+Dynamic: license-file
+
 # UDP Monitor
 
 Windows 向けのリアルタイム UDP ネットワーク診断ツールです。

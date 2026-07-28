@@ -1,0 +1,15 @@
+* { color: #E6EEF5; font-family: "Segoe UI", "Yu Gothic UI", sans-serif; font-size: 13px; }
+QWidget { background: #11161C; }
+QFrame#sidebar { background: #171E26; border-right: 1px solid #27313B; }
+QLabel#appTitle { color: #53E6FF; font-size: 22px; font-weight: 700; }
+QLabel#pageTitle { font-size: 27px; font-weight: 700; }
+QLabel#subtitle { color: #96A6B5; font-size: 14px; }
+QLabel#metricTitle { color: #96A6B5; font-size: 12px; font-weight: 600; }
+QLabel#metricValue { font-size: 28px; font-weight: 700; }
+QPushButton#navigationButton { background: transparent; border: 0; border-radius: 7px; color: #A8B8C6; padding: 11px 14px; text-align: left; font-size: 14px; }
+QPushButton#navigationButton:hover { background: #202B36; color: #E6EEF5; }
+QPushButton#navigationButton:checked { background: #123842; color: #53E6FF; font-weight: 700; }
+QFrame#card { background: #1A222B; border: 1px solid #293641; border-radius: 10px; }
+QFrame#notice { background: #1A222B; border: 1px solid #293641; border-left: 3px solid #FFAA42; border-radius: 10px; }
+QComboBox { background: #202B36; border: 1px solid #3B4A57; border-radius: 6px; padding: 7px 10px; min-width: 150px; }
+QCheckBox { spacing: 8px; }
