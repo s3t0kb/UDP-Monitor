@@ -141,7 +141,7 @@ class MainWindow(QMainWindow):
         """Create the application shell."""
         super().__init__(); self._settings, self._translator, self._save = settings, translator, save; self._buttons: dict[str, QPushButton] = {}
         self.setMinimumSize(960, 620); self.resize(1180, 740)
-        self._stack = QStackedWidget(); self._dashboard = InformationPage("dashboard", translator, True); self._sessions = SessionsPage(repository, translator); self._stack.addWidget(self._dashboard); self._stack.addWidget(InformationPage("monitor", translator, on_action=self.monitor_toggled.emit)); self._stack.addWidget(self._sessions); self._stack.addWidget(SettingsPage(settings, translator, save))
+        self._stack = QStackedWidget(); self._dashboard = InformationPage("dashboard", translator, True); self._sessions = SessionsPage(repository, translator); self._stack.addWidget(self._dashboard); self._stack.addWidget(InformationPage("monitor", translator, on_action=self.monitor_toggled.emit)); self._stack.addWidget(self._sessions); self._stack.addWidget(SettingsPage(settings, translator, save, repository))
         sidebar = QFrame(); sidebar.setObjectName("sidebar"); sidebar.setFixedWidth(214)
         side = QVBoxLayout(sidebar); side.addWidget(self._label("appTitle", "app")); side.addSpacing(28)
         group = QButtonGroup(self); group.setExclusive(True)
