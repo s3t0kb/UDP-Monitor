@@ -6,7 +6,7 @@ from collections.abc import Callable
 from functools import partial
 
 from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QButtonGroup, QCheckBox, QComboBox, QFrame, QGridLayout, QHBoxLayout, QLabel, QPushButton, QStackedWidget, QVBoxLayout, QMainWindow
 
 from udpmonitor.config import AppSettings
 from udpmonitor.database import SessionRepository
@@ -41,7 +41,7 @@ class MetricCard(QFrame):
         self._detail.setText(self._translator.text("waiting"))
 
 
-class InformationPage(QWidget):
+class InformationPage(QMainWindow):
     """Dashboard and temporary feature pages."""
 
     def __init__(self, key: str, translator: Translator, dashboard: bool = False, on_action: Callable[[], None] | None = None) -> None:
@@ -95,7 +95,7 @@ class InformationPage(QWidget):
             self._future_body.setText(self._translator.text("future_body"))
 
 
-class SettingsPage(QWidget):
+class SettingsPage(QMainWindow):
     """Presentation settings owned by the settings service."""
 
     def __init__(self, settings: AppSettings, translator: Translator, save: Callable[[], None], repository: SessionRepository) -> None:
@@ -131,13 +131,13 @@ class SettingsPage(QWidget):
         self._settings.restore_last_page = checked; self._save()
 
 
-class MainWindow(QWidget):
+class MainWindow(QMainWindow):
     """Main shell with persistent page navigation."""
 
     _pages = ("dashboard", "monitor", "sessions", "settings")
     monitor_toggled = Signal()
 
-    def __init__(self, settings: AppSettings, translator: Translator, save: Callable[[], None]) -> None:
+    def __init__(self, settings: AppSettings, translator: Translator, save: Callable[[], None], repository: SessionRepository) -> None:
         """Create the application shell."""
         super().__init__(); self._settings, self._translator, self._save = settings, translator, save; self._buttons: dict[str, QPushButton] = {}
         self.setMinimumSize(960, 620); self.resize(1180, 740)
