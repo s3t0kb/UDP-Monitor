@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    # Windows is the target OS (see README), so CI runs there rather than on
+    # a Linux runner that would hide Windows-only issues (e.g. IcmpPingProbe's
+    # ping.exe parsing, PySide6 rendering quirks).
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package with dev dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run tests
+        # offscreen avoids needing a real display for PySide6/pytest-qt widgets.
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: pytest -v

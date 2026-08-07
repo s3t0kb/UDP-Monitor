@@ -9,7 +9,7 @@ from typing import Any
 
 import orjson
 
-from udpmonitor.constants import DEFAULT_LANGUAGE, application_data_directory
+from udpmonitor.constants import DEFAULT_LANGUAGE, DEFAULT_PROBE_TYPE, PROBE_TYPES, application_data_directory
 
 LOGGER = logging.getLogger(__name__)
 
@@ -23,6 +23,8 @@ class AppSettings:
     last_page: str = "dashboard"
     udp_host: str = "127.0.0.1"
     udp_port: int = 7
+    tcp_port: int = 443
+    probe_type: str = DEFAULT_PROBE_TYPE
     heartbeat_interval_seconds: float = 1.0
     timeout_seconds: float = 2.0
 
@@ -44,7 +46,11 @@ class SettingsStore:
             if not isinstance(data, dict):
                 raise ValueError("Settings must be a JSON object.")
             known = set(AppSettings.__dataclass_fields__)
-            return AppSettings(**{key: value for key, value in data.items() if key in known})
+            settings = AppSettings(**{key: value for key, value in data.items() if key in known})
+            if settings.probe_type not in PROBE_TYPES:
+                LOGGER.warning("Unknown probe_type %r in settings; using default.", settings.probe_type)
+                settings.probe_type = DEFAULT_PROBE_TYPE
+            return settings
         except (OSError, ValueError, TypeError, orjson.JSONDecodeError) as error:
             LOGGER.warning("Unable to load settings: %s", error)
             return AppSettings()

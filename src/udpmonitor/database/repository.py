@@ -7,9 +7,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 import sqlite3
 
-from udpmonitor.models import MeasurementStatus, MonitorSession, NetworkMetrics, StoredMeasurement
+from udpmonitor.models import EventCategory, MeasurementStatus, MonitorSession, MonitoringEvent, NetworkMetrics, SessionSummary, StoredMeasurement
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 DATABASE_FILE_NAME = "udp-monitor.sqlite3"
 
 
@@ -68,6 +68,50 @@ class SessionRepository:
         rows = self._connection.execute("SELECT * FROM measurements WHERE session_id = ? ORDER BY observed_at", (session_id,)).fetchall()
         return [self._measurement_from_row(row) for row in rows]
 
+    def session_summary(self, session_id: int) -> SessionSummary:
+        """Compute aggregate UDP quality statistics for one session in SQL."""
+        session_row = self._connection.execute("SELECT * FROM sessions WHERE id = ?", (session_id,)).fetchone()
+        if session_row is None:
+            raise ValueError(f"Unknown session id: {session_id}")
+        stats_row = self._connection.execute(
+            """SELECT
+                COUNT(*) AS sample_count,
+                SUM(CASE WHEN status = ? THEN 1 ELSE 0 END) AS success_count,
+                AVG(rtt_milliseconds) AS average_rtt,
+                AVG(jitter_milliseconds) AS average_jitter,
+                AVG(packet_loss_percent) AS average_loss
+            FROM measurements WHERE session_id = ?""",
+            (MeasurementStatus.SUCCESS.value, session_id),
+        ).fetchone()
+        session = self._session_from_row(session_row)
+        return SessionSummary(
+            session_id=session.id,
+            host=session.host,
+            port=session.port,
+            started_at=session.started_at,
+            ended_at=session.ended_at,
+            sample_count=stats_row["sample_count"] or 0,
+            success_count=stats_row["success_count"] or 0,
+            average_rtt_milliseconds=stats_row["average_rtt"],
+            average_jitter_milliseconds=stats_row["average_jitter"],
+            average_loss_percent=stats_row["average_loss"],
+        )
+
+    def record_event(self, session_id: int, category: EventCategory, description: str, occurred_at: datetime | None = None) -> MonitoringEvent:
+        """Persist one manually-logged timeline entry for a session."""
+        timestamp = occurred_at or datetime.now(UTC)
+        cursor = self._connection.execute(
+            "INSERT INTO events (session_id, occurred_at, category, description) VALUES (?, ?, ?, ?)",
+            (session_id, timestamp.isoformat(), category.value, description),
+        )
+        self._connection.commit()
+        return MonitoringEvent(cursor.lastrowid, session_id, timestamp, category, description)
+
+    def events_for_session(self, session_id: int) -> list[MonitoringEvent]:
+        """Return a session's logged events in chronological order."""
+        rows = self._connection.execute("SELECT * FROM events WHERE session_id = ? ORDER BY occurred_at", (session_id,)).fetchall()
+        return [self._event_from_row(row) for row in rows]
+
     def export_csv(self, session_id: int, destination: Path) -> int:
         """Export a session as UTF-8 CSV and return the exported row count."""
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -85,7 +129,9 @@ class SessionRepository:
             CREATE TABLE IF NOT EXISTS sessions (id INTEGER PRIMARY KEY, started_at TEXT NOT NULL, ended_at TEXT, host TEXT NOT NULL, port INTEGER NOT NULL);
             CREATE TABLE IF NOT EXISTS measurements (id INTEGER PRIMARY KEY, session_id INTEGER NOT NULL REFERENCES sessions(id), observed_at TEXT NOT NULL, status TEXT NOT NULL, sent_packets INTEGER NOT NULL, received_packets INTEGER NOT NULL, packet_loss_percent REAL, rtt_milliseconds REAL, jitter_milliseconds REAL, timeout_count INTEGER NOT NULL, last_error TEXT);
             CREATE INDEX IF NOT EXISTS idx_measurements_session_observed ON measurements(session_id, observed_at);
-            PRAGMA user_version = 1;
+            CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, session_id INTEGER NOT NULL REFERENCES sessions(id), occurred_at TEXT NOT NULL, category TEXT NOT NULL, description TEXT NOT NULL);
+            CREATE INDEX IF NOT EXISTS idx_events_session_occurred ON events(session_id, occurred_at);
+            PRAGMA user_version = 2;
         """)
         self._connection.commit()
 
@@ -97,3 +143,7 @@ class SessionRepository:
     def _measurement_from_row(row: sqlite3.Row) -> StoredMeasurement:
         metrics = NetworkMetrics(MeasurementStatus(row["status"]), row["sent_packets"], row["received_packets"], row["packet_loss_percent"], row["rtt_milliseconds"], row["jitter_milliseconds"], row["timeout_count"], row["last_error"])
         return StoredMeasurement(row["id"], row["session_id"], datetime.fromisoformat(row["observed_at"]), metrics)
+
+    @staticmethod
+    def _event_from_row(row: sqlite3.Row) -> MonitoringEvent:
+        return MonitoringEvent(row["id"], row["session_id"], datetime.fromisoformat(row["occurred_at"]), EventCategory(row["category"]), row["description"])

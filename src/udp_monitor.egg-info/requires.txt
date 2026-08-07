@@ -1,7 +1,0 @@
-orjson>=3.10.0
-PySide6>=6.8.0
-pyqtgraph>=0.13.7
-
-[dev]
-pytest>=8.0
-pytest-qt>=4.4

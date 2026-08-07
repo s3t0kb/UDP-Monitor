@@ -28,7 +28,9 @@ class UdpMonitorApplication:
         self.monitor_service.metrics_updated.connect(self.window.update_metrics)
         self.monitor_service.metrics_updated.connect(self._record_metrics)
         self.monitor_service.running_changed.connect(self._update_session)
+        self.monitor_service.running_changed.connect(self.window.set_monitoring_active)
         self.window.monitor_toggled.connect(self.monitor_service.toggle)
+        qt_application.aboutToQuit.connect(self.shutdown)
 
     def save_settings(self) -> None:
         """Persist the current settings."""
@@ -42,6 +44,7 @@ class UdpMonitorApplication:
         elif self._active_session_id is not None:
             self._repository.end_session(self._active_session_id)
             self._active_session_id = None
+        self.window.set_active_session(self._active_session_id)
 
     def _record_metrics(self, metrics: NetworkMetrics) -> None:
         """Persist each UI-delivered measurement in the active session."""
@@ -52,3 +55,9 @@ class UdpMonitorApplication:
         """Show the window and enter Qt's event loop."""
         self.window.show()
         return QApplication.instance().exec()
+
+    def shutdown(self) -> None:
+        """Stop the UDP worker and close the database before the app exits."""
+        if self.monitor_service.is_running:
+            self.monitor_service.stop()
+        self._repository.close()
